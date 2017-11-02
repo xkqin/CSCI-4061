@@ -1,0 +1,84 @@
+Command 0 info: ls -l
+Command 1 info: ls
+Command 2 info: ls
+Command 3 info: ls
+Command 4 info: ls
+Command 5 info: ls
+Command 6 info: ls
+Number of commands from the input: 7
+
+PID        COMMAND
+1205       ls
+1206       ls
+1207       ls
+1208       ls
+1209       ls
+1210       ls
+1211       ls
+waiting...Process id: 1205 finished 
+ Process id 1205 finished with exit status 0
+ waiting...Process id: 1206 finished 
+ Process id 1206 finished with exit status 0
+ waiting...Process id: 1207 finished 
+ Process id 1207 finished with exit status 0
+ waiting...Process id: 1208 finished 
+ Process id 1208 finished with exit status 0
+ waiting...Process id: 1209 finished 
+ Process id 1209 finished with exit status 0
+ waiting...Process id: 1210 finished 
+ Process id 1210 finished with exit status 0
+ waiting...Process id: 1211 finished 
+ Process id 1211 finished with exit status 0
+ PID        COMMAND            EXIT
+1205       ls                0
+1206       ls                0
+1207       ls                0
+1208       ls                0
+1209       ls                0
+1210       ls                0
+1211       ls                0
+Command 0 info: ls
+Command 1 info: ls
+Command 2 info: ls
+Command 3 info: ls
+Command 4 info: ls
+Command 5 info: ls
+Command 6 info: ls
+Command 7 info: ls
+Number of commands from the input: 8
+
+PID        COMMAND
+1212       ls
+1213       ls
+1214       ls
+1215       ls
+1216       ls
+1217       ls
+1218       ls
+1219       ls
+waiting...Process id: 1212 finished 
+ Process id 1212 finished with exit status 0
+ waiting...Process id: 1213 finished 
+ Process id 1213 finished with exit status 0
+ waiting...Process id: 1214 finished 
+ Process id 1214 finished with exit status 0
+ waiting...Process id: 1215 finished 
+ Process id 1215 finished with exit status 0
+ waiting...Process id: 1216 finished 
+ Process id 1216 finished with exit status 0
+ waiting...Process id: 1217 finished 
+ Process id 1217 finished with exit status 0
+ waiting...Process id: 1218 finished 
+ Process id 1218 finished with exit status 0
+ waiting...Process id: 1219 finished 
+ Process id 1219 finished with exit status 0
+ PID        COMMAND            EXIT
+1212       ls                0
+1213       ls                0
+1214       ls                0
+1215       ls                0
+1216       ls                0
+1217       ls                0
+1218       ls                0
+1219       ls                0
+No more than 8 arguments!
