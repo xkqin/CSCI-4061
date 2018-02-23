@@ -3,16 +3,16 @@
  CSci 4061 Fall 2017
  Assignment# 3: Piper program for executing pipe commands
 
- Student name: <full name of first student>
- Student ID:   <first student's ID>
+ Student name: <Weihang Xiao>
+ Student ID:   <5423302>
 
- Student name: <full name of second student>
- Student ID:   <Second student's ID>
+ Student name: <Xukun Qin>
+ Student ID:   <5188260>
 
- X500 id: <id1>, <id2 (optional)>
+ X500 id: <xiao0155>, <qinxx215>
 
  Operating system on which you tested your code: Linux, Unix, Solaris, MacOS
- CSELABS machine: <machine you tested on eg: xyz.cselabs.umn.edu>
+CSELABS machine: <csel-kh4250-10.cselabs.umn.edu>
 
  GROUP INSTRUCTION:  Please make only ONLY one  submission when working in a group.
 ***********************************************************************************************/
@@ -45,7 +45,6 @@ int cmd_status[MAX_CMDS_NUM];
 
 static sigjmp_buf jmpbuf;
 int ifdone = 0;
-static int oldpid;
 int fildes[2],pipe2[2];
 /*******************************************************************************/
 /*   The function parse_command_line will take a string such as
@@ -99,9 +98,9 @@ void parse_command(char input[MAX_CMD_LENGTH],
                    char command[MAX_CMD_LENGTH],
                    char *argvector[MAX_CMD_LENGTH]){
   int i = 0;
-  argvector[i] = strtok(input, " ");
+  argvector[i] = strtok(input, " \t\n\0");
   i++;
-  while ((argvector[i] = strtok(NULL, " ")) != NULL){
+  while ((argvector[i] = strtok(NULL, " \t\n\0")) != NULL){
     i++;
   }
   strcpy(command, argvector[0]);
@@ -215,14 +214,45 @@ void create_command_process (char cmds[MAX_CMD_LENGTH],   // Command line to be 
 /********************************************************************************/
 
 void waitPipelineTermination () {
-  for (int i = 0; i < num_cmds; i++){
-    fprintf(logfp, "waiting...Process id: %d finished \n ",cmd_pids[i]);
-    if(waitpid(cmd_pids[i], NULL, 0) == cmd_pids[i])
-    {
-        fprintf(logfp, "Process id %d finished with exit status %d\n ",cmd_pids[i],cmd_status[i]);
+  int finishCount = 0;
+  int  signalInterrupt = 0;  // keep track of any iinterrupt due to signal
+  int fatalError = 0;
+  int statid = 0 ;
+  int status = 0 ;
+  int i;
+
+    while (finishCount < num_cmds ) {
+     //printf("\nwaiting for pipeline termination...");
+     if((statid=wait(&status))==-1){
+           perror("Wait terminated:");
+           signalInterrupt = 1;
+           break;
+   }
+    fprintf(logfp, "Waiting...process id %d finished\n", statid);
+     if (signalInterrupt) {
+        continue;
+     }
+     for (i=0; i<num_cmds; i++) {
+        if (cmd_pids[i]==statid)  {
+
+            cmd_status[i] = status;
+            fprintf(logfp, "Process id %d finished with exit status %d\n", statid, cmd_status[i]);
+            finishCount++;   // Only count those processes that belong to the pipeline
+         }
+     }
+     if ( WEXITSTATUS(status) != 0 ) {
+          fatalError = 1;
+          printf("Terminating pipeline becuase process %d failed to execute\n", statid);
+          break;
+     }
     }
 
-  }
+    if ( fatalError ) {
+      for (i=0; i<num_cmds; i++) {
+        printf("Terminating process %d \n", cmd_pids[i] );
+        kill(cmd_pids[i], 9);
+      }
+    }
 }
 
 /********************************************************************************/
@@ -237,10 +267,16 @@ void killPipeline( int signum ) {
     kill(cmd_pids[i],SIGKILL);
   }
   printf("\nprocesses killed go back to the beginning\n");
-  siglongjmp( jmpbuf, 1 );
+    siglongjmp( jmpbuf, 1 );
 
 }
+void catchC( int signum ) {
 
+  fflush(logfp);
+  fclose(logfp);
+  printf("terminated the program!\n");
+  exit(0);
+}
 /********************************************************************************/
 
 int main(int ac, char *av[]){
@@ -256,10 +292,10 @@ int main(int ac, char *av[]){
   /* Set up signal handler for CNTRL-C to kill only the pipeline processes  */
 
   logfp =  fopen("LOGFILE", "w");
-
+  sigsetjmp(jmpbuf, 1);
 
   while (1) {
-     //signal(SIGINT, SIG_DFL );
+     signal(SIGINT, SIG_DFL );
      pipcount = 0;
      fildes[0]=-1;
      fildes[1]=-1;
@@ -269,21 +305,21 @@ int main(int ac, char *av[]){
      char pipeCommand[MAX_INPUT_LINE_LENGTH];
        char* terminator = "quit";
      fflush(stdout);
-     struct sigaction act;
-       act.sa_handler = killPipeline;
-       sigemptyset( &act.sa_mask);
-       act.sa_flags = 0;
-
-       if (sigaction(SIGINT, &act, NULL) == -1) {
-            perror("Error in settting handler for SIGINT");
-       }
-       sigsetjmp(jmpbuf, 1);
-
+    //  struct sigaction act;
+    //    act.sa_handler = killPipeline;
+    //    sigemptyset( &act.sa_mask);
+    //    act.sa_flags = 0;
+     //
+    //    if (sigaction(SIGINT, &act, NULL) == -1) {
+    //         perror("Error in settting handler for SIGINT");
+    //    }
+      //sigsetjmp(jmpbuf, 1);
+      signal(SIGINT, catchC);
      printf("Give a list of pipe commands: ");
      gets(pipeCommand);
-
      printf("You entered : list of pipe commands  %s\n", pipeCommand);
      if ( strcmp(pipeCommand, terminator) == 0  ) {
+    //      sigsetjmp(jmpbuf, 2);
         fflush(logfp);
         fclose(logfp);
         printf("Goodbye!\n");
@@ -301,6 +337,7 @@ int main(int ac, char *av[]){
     /* create 3 processes; one to execute "ls -l", second for "grep ^d"  */
     /* and the third for executing "wc -l"                               */
     ifdone = 0;
+    signal(SIGINT, killPipeline);
     for(i=0;i<num_cmds;i++){
          /*  CREATE A NEW PROCCES EXECUTTE THE i'TH COMMAND    */
          /*  YOU WILL NEED TO CREATE A PIPE, AND CONNECT THIS NEW  */

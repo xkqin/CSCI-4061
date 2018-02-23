@@ -256,19 +256,21 @@ void Result(char *input_dir_name, int choice)
 			if (strcmp (direntry->d_name, "..") == 0)
 			continue;
 
+			if (S_ISDIR(statbuf.st_mode)) {
 
-          if (S_ISDIR(statbuf.st_mode)) {
 
-              /* check this directory */
-            if(realpath(direntry->d_name,input_dir_name) ==NULL)
-            {
-              perror("ERROR: Unable to have the realpath\n");
-              exit(4);
-            }
-            Result(input_dir_name, choice);
-          //  continue;
-              /* Finally, restore the original working directory. */
-          }
+					/* check this directory */
+        if(realpath(direntry->d_name,input_dir_name) ==NULL)
+        {
+          perror("ERROR: Unable to have the realpath\n");
+          exit(4);
+        }
+				Result(input_dir_name, choice);
+
+				  /* Finally, restore the original working directory. */
+
+			}
+
 			if (!(S_ISDIR(statbuf.st_mode))) {
             char *file;
             file = (char *) malloc(NAMESIZE * sizeof(char));
@@ -285,6 +287,8 @@ void Result(char *input_dir_name, int choice)
               exit(4);
             }
             }
+
+
 
               // if the user enter 3, then execute this case.
             	if (choice == 3){
@@ -345,9 +349,7 @@ void Result(char *input_dir_name, int choice)
 								TL = file;
 
 					}
-
 			}
-
 			/*************************/
 		}
     if (chdir ("..") == -1)
